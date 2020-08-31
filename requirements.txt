@@ -1,0 +1,4 @@
+opencv-python
+pure-python-adb
+aircv
+scikit-image
