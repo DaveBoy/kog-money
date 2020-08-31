@@ -1,12 +1,12 @@
 import logging
 import os
+import random
 import time
 from io import BytesIO
 
-import numpy as np
 from PIL import Image
 from ppadb.client import Client as AdbClient
-import random
+
 client = AdbClient(host="127.0.0.1", port=5037)
 
 device = client.devices()[0]

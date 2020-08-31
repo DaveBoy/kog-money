@@ -1,10 +1,8 @@
 import logging
-import aircv as ac
 
-import glob
-from PIL import Image
 from img_match import find_img_position
 from util import pull_screenshot
+
 method = 'cv2.TM_SQDIFF'
 
 # 日志输出
