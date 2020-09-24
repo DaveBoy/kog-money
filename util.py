@@ -105,8 +105,9 @@ def pull_screenshot(resize=False, method=0, save_file=False):
     else:
         os.system('adb shell screencap -p /sdcard/screen.png')
         os.system('adb pull /sdcard/screen.png {}'.format(SCREEN_PATH))
+        if not os.path.exists(SCREEN_PATH):
+            time.sleep(1)
         img = Image.open(SCREEN_PATH)
-
     if resize and img.size != (base_x, base_y):
         return img.resize((base_x, base_y))
     else:

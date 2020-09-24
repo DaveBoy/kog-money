@@ -19,7 +19,8 @@ def check_game_state():
     speed_time = datetime.now()
     current_count = 0
     while True:
-        pull_screenshot(method=1, save_file=True)
+        pull_screenshot(method=1, save_file=False)
+       
         res = find_img_position()
 
         if res is not None:  # 正常匹配
@@ -36,7 +37,7 @@ def check_game_state():
                 tap_sleep(res[1], res[2])
                 time.sleep(0.5)
         else:  # 未匹配
-            time.sleep(2.5)
+            time.sleep(1)
 
 
 if __name__ == '__main__':

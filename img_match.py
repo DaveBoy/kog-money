@@ -1,5 +1,9 @@
 import logging
 import aircv as ac
+import os
+import numpy as np
+import cv2
+import time
 
 import glob
 # 日志输出
@@ -10,8 +14,8 @@ logging.basicConfig(format='[%(asctime)s][%(name)s:%(levelname)s(%(lineno)d)][%(
 target_imgs=glob.glob('maoxian/*')
 
 def matchImg(imgsrc, imgobj, confidencevalue=0.8):  # imgsrc=原始图像，imgobj=待查找的图片
-    imsrc = ac.imread(imgsrc)
-    imobj = ac.imread(imgobj)
+    imsrc = cv2.imdecode(np.fromfile(imgsrc,dtype=np.uint8),-1)
+    imobj = cv2.imdecode(np.fromfile(imgobj,dtype=np.uint8),-1)
     match_result = ac.find_template(imsrc, imobj, confidencevalue)
     if match_result is not None:
         match_result['shape'] = (imsrc.shape[1], imsrc.shape[0])  # 0为高，1为宽
@@ -20,7 +24,9 @@ def matchImg(imgsrc, imgobj, confidencevalue=0.8):  # imgsrc=原始图像，imgo
 
 def find_img_position(debugEveryOne=False):
     for template in target_imgs:
-        res = matchImg('screen.png',template)
+        if not os.path.exists('screen.png'):
+            time.sleep(1)
+        res = matchImg('D:\\PyPro\\kog-money\\screen.png',template)
         # {'confidence': 0.5435812473297119, 'rectangle': ((394, 384), (394, 416), (450, 384), (450, 416)), 'result': (422.0, 400.0)
         # confidence：匹配相似率
         #
