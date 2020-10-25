@@ -43,16 +43,18 @@ adb命令：
 
 不同分辨率就使用不同maoxian文件夹下面的截图来识别
 
-问题1:其他分辨率
+##其他分辨率
 
 1、需要截图的界面运行crop_screenshot.py文件，生成截图（小米miui12出现了奇怪的问题，截图生成到手机的文件名加了时间戳，需要更改crop_screenshot.py中调用方法screen_crop为screen_crop_fix）
 
 2、然后自己对生成的图片编辑-->裁剪指定区域生成maoxian文件夹下对应图标（具体图标参考maoxian_1280文件夹），不能直接截图，要用裁剪
 
 
-
+## 注意点
 test.py:发现匹配出现问题时调试使用，可以生成识别结果裁剪到maoxian_crop文件夹，自己查看是否是正确的区域
+
 crop_screenshot.py:用来多次截图，方便后续裁剪生成对应分辨率的target识别图标
+
 constant.SCREEN_METHOD = 0 #0一般手机都行  1是0截图出问题的时候(看根目录下生成的screen.png是否正常)用，比如腾讯手游助手就需要设置为1
 ## 反馈 
 有啥问题欢迎提issue
