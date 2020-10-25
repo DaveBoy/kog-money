@@ -1,4 +1,3 @@
-import os
 import logging
 import os
 import random
@@ -9,7 +8,7 @@ from io import BytesIO
 from PIL import Image
 from ppadb.client import Client as AdbClient
 
-from constant import SCREEN_PATH, SCREEN_METHOD,getDeviceSize,setDeviceSize
+from constant import SCREEN_PATH, SCREEN_METHOD,getDeviceSize,setDeviceSize,PAUSE_COUNT
 from img_match import find_img_position
 
 client = AdbClient(host="127.0.0.1", port=5037)
@@ -25,8 +24,10 @@ from logger import logger as logging
 
 base_x, base_y = 1280, 720
 
-
+current_count = 0
 def init():
+    global current_count
+    current_count=0
     find_screen_size()
 
 
@@ -35,6 +36,7 @@ def convert_cord(x, y):
     device_y=getDeviceSize()[1]
     real_x = int(x / base_x * device_x)
     real_y = int(y / base_y * device_y)
+    logging.debug("坐标转换：{},{}-->{},{}".format(x,y,real_x,real_y))
     return real_x, real_y
 #传固定坐标  以1280参考系位定点  会进行转换
 def tap_screen_convert(x, y):
@@ -58,14 +60,14 @@ def stop_game():
 
 def start_game():
     device.shell('monkey -p com.tencent.tmgp.sgame -c android.intent.category.LAUNCHER 1')  # 打开游戏
-
-    time.sleep(60)
-
+    logging.info("启动游戏，等待30s")
+    time.sleep(30)
+    init()
     tap_screen_convert(643, 553) #选区界面 开始游戏
 
-    logging.info("等待1分钟")
+    logging.info("选区结束，等待30s")
 
-    time.sleep(60)
+    time.sleep(30)
 
     logging.info("关闭广告")
     check_game_state(True)
@@ -80,7 +82,7 @@ def restart_game():
     logging.info("重启游戏")
 
     start_game()
-
+    tapToStart()
 
 
 def swipe(x, y, x1, y1, duration):
@@ -98,7 +100,6 @@ def find_screen_size():
 def pull_screenshot(resize=False, method=0, save_file=False):
     if save_file and os.path.exists(SCREEN_PATH):
         os.remove(SCREEN_PATH)
-
     if method == 0:
         result = device.screencap()
         img = Image.open(BytesIO(result))
@@ -122,7 +123,7 @@ def pull_screenshot(resize=False, method=0, save_file=False):
 
 def check_game_state(justClosePop=False):
     speed_time = datetime.now()
-    current_count = 0
+    global current_count
     error_count = 0
     while True:
         try:
@@ -133,10 +134,17 @@ def check_game_state(justClosePop=False):
             if justClosePop:
                 while res is not None and "b_close_pop" in res[0]:
                     tap_screen(res[1], res[2])  # X掉开始的活动广告
-                    time.sleep(1)
+                    time.sleep(2)
 
                     pull_screenshot(method=SCREEN_METHOD,save_file=True)
                     res = find_img_position()
+
+                time.sleep(5)#有个弹窗的直播  特别慢
+                pull_screenshot(method=SCREEN_METHOD,save_file=True)
+                res = find_img_position()
+                if res is not None and "b_close_pop" in res[0]:
+                    tap_screen(res[1], res[2])  # X掉开始的活动广告
+                
                 break  # 关完活动页就关闭了
             if res is not None:  # 正常匹配
                 name = res[0]
@@ -152,6 +160,9 @@ def check_game_state(justClosePop=False):
                         current_count = current_count + 1
                         logging.info("已运行{}次,本次时间{}秒".format(current_count, (datetime.now() - speed_time).seconds))
                         speed_time = datetime.now()
+                        if 0 < PAUSE_COUNT < current_count:
+                            logging.info("间隔休息十分钟")
+                            restart_game()
                     tap_screen(res[1], res[2])
             else:  # 未匹配
                 time.sleep(1)
