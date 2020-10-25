@@ -14,7 +14,7 @@ from io import BytesIO
 from PIL import Image
 from ppadb.client import Client as AdbClient
 
-from constant import PC_PROJECT_ROOT,PC_CROP_SAVE_PARENT_NAME,PC_CROP_SAVE_PARENT_PATH,SCREEN_FILE_NAME,SCREEN_FILE_TYPE,SCREEN_PATH,PC_RECONGNIZE_TEST,PC_RECONGNIZE_TARGET
+from constant import PC_PROJECT_ROOT,PC_CROP_PARENT_NAME,PC_CROP_PARENT_PATH,SCREEN_FILE_NAME,SCREEN_FILE_TYPE,SCREEN_PATH,PC_RECONGNIZE_TEST,PC_RECONGNIZE_TARGET
 
 client = AdbClient(host="127.0.0.1", port=5037)
 
@@ -43,14 +43,20 @@ def convert_cord(x, y):
     real_x = int(x / base_x * device_x)
     real_y = int(y / base_y * device_y)
     return real_x, real_y
+#传固定坐标  以1280参考系位定点  会进行转换
+def tap_screen_convert(x, y):
+    tap_screen(x, y,True)
 
-
-def tap_screen(x, y):
+#needConvert 控制是否需要进行分辨率转换
+def tap_screen(x, y,needConvert=False):
     """calculate real x, y according to device resolution."""
-    real_x, real_y = convert_cord(x, y)
+    real_x, real_y = int(x),int(y)
+    if needConvert:
+        real_x, real_y = convert_cord(x, y)
     real_x = random.randint(real_x, real_x + 10)
     real_y = random.randint(real_y, real_y + 10)
     device.shell('input tap {} {}'.format(real_x, real_y))
+    time.sleep(random.random())#随机休眠  无实际用处  用于防止检测？不知道有没有用
 
 
 def stop_game():
@@ -62,7 +68,7 @@ def start_game():
 
     time.sleep(60)
 
-    tap_screen(643, 553) #选区界面 开始游戏
+    tap_screen_convert(643, 553) #选区界面 开始游戏
 
     logging.info("等待1分钟")
 
@@ -82,9 +88,6 @@ def restart_game():
 
     start_game()
 
-
-def tap_center(top_left, bottom_right):
-    tap_screen((top_left[0] + bottom_right[0]) / 2, (top_left[1] + bottom_right[1]) / 2)
 
 
 def swipe(x, y, x1, y1, duration):
@@ -122,9 +125,7 @@ def pull_screenshot(resize=False, method=0, save_file=False):
         return img
 
 
-def tap_sleep(x, y):
-    tap_screen(x, y)
-    time.sleep(0.5)
+
 
 
 def check_game_state(justClosePop=False):
@@ -139,7 +140,7 @@ def check_game_state(justClosePop=False):
             error_count = 0
             if justClosePop:
                 while res is not None and "b_close_pop" in res[0]:
-                    tap_sleep(res[1], res[2])  # X掉开始的活动广告
+                    tap_screen(res[1], res[2])  # X掉开始的活动广告
                     time.sleep(1)
 
                     pull_screenshot(method=1, save_file=False)
@@ -159,7 +160,7 @@ def check_game_state(justClosePop=False):
                         current_count = current_count + 1
                         logging.info("已运行{}次,本次时间{}秒".format(current_count, (datetime.now() - speed_time).seconds))
                         speed_time = datetime.now()
-                    tap_sleep(res[1], res[2])
+                    tap_screen(res[1], res[2])
                     time.sleep(0.5)
             else:  # 未匹配
                 time.sleep(1)
@@ -173,10 +174,10 @@ def check_game_state(justClosePop=False):
 
 
 def tapToStart():
-    tap_sleep(1007, 531)  # 万象天工
+    tap_screen_convert(1007, 531)  # 万象天工
 
-    tap_sleep(90, 170)  # 快捷入口第一个
+    tap_screen_convert(90, 170)  # 快捷入口第一个
 
-    tap_sleep(658, 346)  # 挑战
+    tap_screen_convert(658, 346)  # 挑战
 
-    tap_sleep(1006, 610)
+    tap_screen_convert(1006, 610)

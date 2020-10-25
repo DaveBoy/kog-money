@@ -13,8 +13,8 @@ logging.basicConfig(format='[%(asctime)s][%(name)s:%(levelname)s(%(lineno)d)][%(
 
 
 if __name__ == '__main__':
-    init()
-    pull_screenshot(False,1,True)
+    #init()
+    #pull_screenshot(False,1,True)
     res=find_img_position(True)
     if res is None:
         logging.info("not match")

@@ -8,7 +8,7 @@ import time
 import glob
 from PIL import Image
 
-from constant import PC_PROJECT_ROOT,PC_CROP_SAVE_PARENT_NAME,PC_CROP_SAVE_PARENT_PATH,SCREEN_FILE_NAME,SCREEN_FILE_TYPE,SCREEN_PATH,PC_RECONGNIZE_TEST,PC_RECONGNIZE_TARGET
+from constant import PC_PROJECT_ROOT,PC_CROP_PARENT_NAME,PC_CROP_PARENT_PATH,SCREEN_FILE_NAME,SCREEN_FILE_TYPE,SCREEN_PATH,PC_RECONGNIZE_TEST,PC_RECONGNIZE_TARGET
 
 from skimage.feature import match_template
 from matplotlib import pyplot as plt
@@ -40,7 +40,7 @@ def find_img_position(debugEveryOne=False):
     for template in target_imgs:
         if not os.path.exists(SCREEN_PATH):
             time.sleep(1)
-        res = matchImg('{}{}'.format(PC_CROP_SAVE_PARENT_PATH,SCREEN_PATH),template,confidencevalue=0.9)
+        res = matchImg('{}{}'.format(PC_PROJECT_ROOT,SCREEN_PATH),template,confidencevalue=0.9)
         # {'confidence': 0.5435812473297119, 'rectangle': ((394, 384), (394, 416), (450, 384), (450, 416)), 'result': (422.0, 400.0)
         # confidence：匹配相似率
         #
@@ -60,7 +60,7 @@ def find_img_position(debugEveryOne=False):
                 crop_file = template.replace(PC_RECONGNIZE_TARGET,PC_RECONGNIZE_TEST)
                 if os.path.exists(crop_file):
                     os.remove(crop_file)
-                Image.open('{}{}'.format(PC_CROP_SAVE_PARENT_PATH,SCREEN_PATH)).crop((rect[0][0],
+                Image.open('{}{}'.format(PC_PROJECT_ROOT,SCREEN_PATH)).crop((rect[0][0],
                                                                     rect[0][1],
                                                                      rect[3][0],
                                                                      rect[3][1],)).save(crop_file)
