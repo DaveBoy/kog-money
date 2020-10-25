@@ -1,20 +1,16 @@
+import os
 import logging
 import os
 import random
 import time
-
-import time
-
-from img_match import find_img_position
-import logging
 from datetime import datetime
-
 from io import BytesIO
 
 from PIL import Image
 from ppadb.client import Client as AdbClient
 
-from constant import PC_PROJECT_ROOT,PC_CROP_PARENT_NAME,PC_CROP_PARENT_PATH,SCREEN_FILE_NAME,SCREEN_FILE_TYPE,SCREEN_PATH,PC_RECONGNIZE_TEST,PC_RECONGNIZE_TARGET
+from constant import SCREEN_PATH, SCREEN_METHOD,getDeviceSize,setDeviceSize
+from img_match import find_img_position
 
 client = AdbClient(host="127.0.0.1", port=5037)
 
@@ -24,14 +20,9 @@ baseline = {}
 
 
 # 日志输出
-logging.basicConfig(format='[%(asctime)s][%(name)s:%(levelname)s(%(lineno)d)][%(module)s:%(funcName)s]:%(message)s',
-                    datefmt='%m/%d/%Y %I:%M:%S',
-                    level=logging.INFO)
+from logger import logger as logging
 
-# 屏幕分辨率
-#device_x, device_y = 1280, 720
-device_x, device_y = 1920,1080
-#device_x, device_y = 2248,1080
+
 base_x, base_y = 1280, 720
 
 
@@ -40,6 +31,8 @@ def init():
 
 
 def convert_cord(x, y):
+    device_x=getDeviceSize()[0]
+    device_y=getDeviceSize()[1]
     real_x = int(x / base_x * device_x)
     real_y = int(y / base_y * device_y)
     return real_x, real_y
@@ -95,11 +88,11 @@ def swipe(x, y, x1, y1, duration):
 
 
 def find_screen_size():
-    global device_x
-    global device_y
-    img = pull_screenshot(False)
-    device_x, device_y = img.size
-    logging.info('device size x, y = ({}, {})'.format(device_x, device_y))
+
+    img = pull_screenshot(method=SCREEN_METHOD,save_file=False)
+    x, y = img.size
+    setDeviceSize(x,y)
+    logging.info('device size x, y = ({}, {})'.format(x, y))
 
 
 def pull_screenshot(resize=False, method=0, save_file=False):
@@ -116,9 +109,8 @@ def pull_screenshot(resize=False, method=0, save_file=False):
     else:
         os.system('adb shell screencap -p /sdcard/{}'.format(SCREEN_PATH))
         os.system('adb pull /sdcard/{} {}'.format(SCREEN_PATH,SCREEN_PATH))
-        if not os.path.exists(SCREEN_PATH):
-            time.sleep(1)
-        img = Image.open(SCREEN_PATH)
+        if not save_file:
+            img = Image.open(SCREEN_PATH)
     if resize and img.size != (base_x, base_y):
         return img.resize((base_x, base_y))
     else:
@@ -134,7 +126,7 @@ def check_game_state(justClosePop=False):
     error_count = 0
     while True:
         try:
-            pull_screenshot(method=1, save_file=False)
+            pull_screenshot(method=SCREEN_METHOD,save_file=True)
 
             res = find_img_position()  # 这里容易出错
             error_count = 0
@@ -143,7 +135,7 @@ def check_game_state(justClosePop=False):
                     tap_screen(res[1], res[2])  # X掉开始的活动广告
                     time.sleep(1)
 
-                    pull_screenshot(method=1, save_file=False)
+                    pull_screenshot(method=SCREEN_METHOD,save_file=True)
                     res = find_img_position()
                 break  # 关完活动页就关闭了
             if res is not None:  # 正常匹配
@@ -161,7 +153,6 @@ def check_game_state(justClosePop=False):
                         logging.info("已运行{}次,本次时间{}秒".format(current_count, (datetime.now() - speed_time).seconds))
                         speed_time = datetime.now()
                     tap_screen(res[1], res[2])
-                    time.sleep(0.5)
             else:  # 未匹配
                 time.sleep(1)
         except Exception as e:

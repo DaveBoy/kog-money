@@ -1,5 +1,5 @@
 
-from util import tapToStart, check_game_state
+from util import tapToStart, check_game_state,init
 
 
 
@@ -8,6 +8,7 @@ from util import tapToStart, check_game_state
 
 
 if __name__ == '__main__':
+    init()
     tapToStart()
     check_game_state()
 
