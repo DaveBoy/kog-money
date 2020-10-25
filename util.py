@@ -14,13 +14,14 @@ from io import BytesIO
 from PIL import Image
 from ppadb.client import Client as AdbClient
 
+from constant import PC_PROJECT_ROOT,PC_CROP_SAVE_PARENT_NAME,PC_CROP_SAVE_PARENT_PATH,SCREEN_FILE_NAME,SCREEN_FILE_TYPE,SCREEN_PATH,PC_RECONGNIZE_TEST,PC_RECONGNIZE_TARGET
+
 client = AdbClient(host="127.0.0.1", port=5037)
 
 device = client.devices()[0]
 
 baseline = {}
 
-SCREEN_PATH = 'screen.png'
 
 # 日志输出
 logging.basicConfig(format='[%(asctime)s][%(name)s:%(levelname)s(%(lineno)d)][%(module)s:%(funcName)s]:%(message)s',
@@ -28,7 +29,9 @@ logging.basicConfig(format='[%(asctime)s][%(name)s:%(levelname)s(%(lineno)d)][%(
                     level=logging.INFO)
 
 # 屏幕分辨率
-device_x, device_y = 1280, 720
+#device_x, device_y = 1280, 720
+device_x, device_y = 1920,1080
+#device_x, device_y = 2248,1080
 base_x, base_y = 1280, 720
 
 
@@ -108,8 +111,8 @@ def pull_screenshot(resize=False, method=0, save_file=False):
             with open(SCREEN_PATH, "wb") as fp:
                 fp.write(result)
     else:
-        os.system('adb shell screencap -p /sdcard/screen.png')
-        os.system('adb pull /sdcard/screen.png {}'.format(SCREEN_PATH))
+        os.system('adb shell screencap -p /sdcard/{}'.format(SCREEN_PATH))
+        os.system('adb pull /sdcard/{} {}'.format(SCREEN_PATH,SCREEN_PATH))
         if not os.path.exists(SCREEN_PATH):
             time.sleep(1)
         img = Image.open(SCREEN_PATH)

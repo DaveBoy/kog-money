@@ -1,9 +1,9 @@
 import logging
 
 from img_match import find_img_position
-from util import pull_screenshot
+from util import pull_screenshot,init
 
-method = 'cv2.TM_SQDIFF'
+
 
 # 日志输出
 logging.basicConfig(format='[%(asctime)s][%(name)s:%(levelname)s(%(lineno)d)][%(module)s:%(funcName)s]:%(message)s',
@@ -13,6 +13,7 @@ logging.basicConfig(format='[%(asctime)s][%(name)s:%(levelname)s(%(lineno)d)][%(
 
 
 if __name__ == '__main__':
+    init()
     pull_screenshot(False,1,True)
     res=find_img_position(True)
     if res is None:
