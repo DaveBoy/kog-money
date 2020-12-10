@@ -51,6 +51,11 @@ adb命令：
 
 3、我自己用的2248的文件夹，其他分辨率的截图如果不对，需要大家自己制作
 
+## 增加server酱微信通知
+
+constant.SERVER_SCKEY = ""  
+
+[server酱](http://sc.ftqq.com/?c=code)
 
 ## 注意点
 test.py:发现匹配出现问题时调试使用，可以生成识别结果裁剪到maoxian_crop文件夹，自己查看是否是正确的区域
