@@ -14,7 +14,8 @@ class MsgServerHandler(logging.Handler):
         logging.Handler.__init__(self)
 
     def emit(self, record):
-        postServerMsg(record)
+        msg=self.format(record)
+        postServerMsg(msg)
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ console.setLevel(LOG_CONSOLE_LEVEL)
 
 server = MsgServerHandler()
 server.setLevel(LOG_SERVER_LEVEL)
+server.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 
 if LOG_FILE_SWITCH:
     logger.addHandler(handler)
@@ -45,5 +47,3 @@ if __name__ == '__main__':
     logger.debug('This is a debug message.')
     logger.info('This is an info message.')
     logger.warning('This is a warning message.')
-    logger.error('This is an error message.')
-    logger.critical('This is a critical message.')
