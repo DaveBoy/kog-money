@@ -8,7 +8,8 @@ from io import BytesIO
 from PIL import Image
 from ppadb.client import Client as AdbClient
 
-from constant import SCREEN_PATH, SCREEN_METHOD,getDeviceSize,setDeviceSize,PAUSE_COUNT
+from constant import SCREEN_PATH, SCREEN_METHOD, getDeviceSize, setDeviceSize, PAUSE_COUNT, SERVER_TIMES, \
+    MAX_TIME,MIN_TIME
 from img_match import find_img_position
 
 client = AdbClient(host="127.0.0.1", port=5037)
@@ -17,41 +18,44 @@ device = client.devices()[0]
 
 baseline = {}
 
-
 # 日志输出
 from logger import logger as logging
-
 
 base_x, base_y = 1280, 720
 
 current_count = 0
+
+
 def init():
     global current_count
-    current_count=0
+    current_count = 0
     find_screen_size()
 
 
 def convert_cord(x, y):
-    device_x=getDeviceSize()[0]
-    device_y=getDeviceSize()[1]
+    device_x = getDeviceSize()[0]
+    device_y = getDeviceSize()[1]
     real_x = int(x / base_x * device_x)
     real_y = int(y / base_y * device_y)
-    logging.debug("坐标转换：{},{}-->{},{}".format(x,y,real_x,real_y))
+    logging.debug("坐标转换：{},{}-->{},{}".format(x, y, real_x, real_y))
     return real_x, real_y
-#传固定坐标  以1280参考系位定点  会进行转换
-def tap_screen_convert(x, y):
-    tap_screen(x, y,True)
 
-#needConvert 控制是否需要进行分辨率转换
-def tap_screen(x, y,needConvert=False):
+
+# 传固定坐标  以1280参考系位定点  会进行转换
+def tap_screen_convert(x, y):
+    tap_screen(x, y, True)
+
+
+# needConvert 控制是否需要进行分辨率转换
+def tap_screen(x, y, needConvert=False):
     """calculate real x, y according to device resolution."""
-    real_x, real_y = int(x),int(y)
+    real_x, real_y = int(x), int(y)
     if needConvert:
         real_x, real_y = convert_cord(x, y)
     real_x = random.randint(real_x, real_x + 10)
     real_y = random.randint(real_y, real_y + 10)
     device.shell('input tap {} {}'.format(real_x, real_y))
-    time.sleep(random.random())#随机休眠  无实际用处  用于防止检测？不知道有没有用
+    time.sleep(random.random())  # 随机休眠  无实际用处  用于防止检测？不知道有没有用
 
 
 def stop_game():
@@ -63,7 +67,7 @@ def start_game():
     logging.info("启动游戏，等待30s")
     time.sleep(30)
     init()
-    tap_screen_convert(643, 553) #选区界面 开始游戏
+    tap_screen_convert(643, 553)  # 选区界面 开始游戏
 
     logging.info("选区结束，等待30s")
 
@@ -90,10 +94,9 @@ def swipe(x, y, x1, y1, duration):
 
 
 def find_screen_size():
-
-    img = pull_screenshot(method=SCREEN_METHOD,save_file=False)
+    img = pull_screenshot(method=SCREEN_METHOD, save_file=False)
     x, y = img.size
-    setDeviceSize(x,y)
+    setDeviceSize(x, y)
     logging.info('device size x, y = ({}, {})'.format(x, y))
 
 
@@ -109,7 +112,7 @@ def pull_screenshot(resize=False, method=0, save_file=False):
                 fp.write(result)
     else:
         os.system('adb shell screencap -p /sdcard/{}'.format(SCREEN_PATH))
-        os.system('adb pull /sdcard/{} {}'.format(SCREEN_PATH,SCREEN_PATH))
+        os.system('adb pull /sdcard/{} {}'.format(SCREEN_PATH, SCREEN_PATH))
         if not save_file:
             img = Image.open(SCREEN_PATH)
     if resize and img.size != (base_x, base_y):
@@ -118,51 +121,66 @@ def pull_screenshot(resize=False, method=0, save_file=False):
         return img
 
 
-
-
-
 def check_game_state(justClosePop=False):
     speed_time = datetime.now()
     global current_count
     error_count = 0
+    fast_count = 0
+
     while True:
         try:
-            pull_screenshot(method=SCREEN_METHOD,save_file=True)
+            if (datetime.now() - speed_time).seconds > MAX_TIME:
+                stop_game()
+                logging.warning("异常卡住，结束游戏")
+                break
+            pull_screenshot(method=SCREEN_METHOD, save_file=True)
 
             res = find_img_position()  # 这里容易出错
             error_count = 0
-            if justClosePop:
+            if justClosePop:  # 启动关闭广告
                 while res is not None and "b_close_pop" in res[0]:
                     tap_screen(res[1], res[2])  # X掉开始的活动广告
                     time.sleep(2)
 
-                    pull_screenshot(method=SCREEN_METHOD,save_file=True)
+                    pull_screenshot(method=SCREEN_METHOD, save_file=True)
                     res = find_img_position()
 
-                time.sleep(5)#有个弹窗的直播  特别慢
-                pull_screenshot(method=SCREEN_METHOD,save_file=True)
+                time.sleep(5)  # 有个弹窗的直播  特别慢  所以再试一次
+                pull_screenshot(method=SCREEN_METHOD, save_file=True)
                 res = find_img_position()
                 if res is not None and "b_close_pop" in res[0]:
                     tap_screen(res[1], res[2])  # X掉开始的活动广告
-                
-                break  # 关完活动页就关闭了
+
+                break  # 关完活动页就关闭了 回去继续执行之前的循环
             if res is not None:  # 正常匹配
                 name = res[0]
                 if "b_finish" in name:  # 超出上限
                     stop_game()
-                    logging.info("超出上限")
+                    logging.warning("超出上限")
                     break
                 elif "a_relax" in name:  # 妲己提示休息
-                    logging.info("妲己提示休息,休息十分钟")
+                    logging.warning("妲己提示休息,休息十分钟")
                     restart_game()
                 else:
                     if "crop_restart" in name:
-                        current_count = current_count + 1
-                        logging.info("已运行{}次,本次时间{}秒".format(current_count, (datetime.now() - speed_time).seconds))
+                        seconds = (datetime.now() - speed_time).seconds
                         speed_time = datetime.now()
-                        if 0 < PAUSE_COUNT < current_count:
-                            logging.info("间隔休息十分钟")
-                            restart_game()
+                        if seconds >= MIN_TIME:  # 防止卡在结算界面，重复计算成功次数
+                            fast_count = 0
+                            current_count = current_count + 1
+                            logging.info("已运行{}次,本次时间{}秒".format(current_count, seconds))
+                            if current_count % SERVER_TIMES == 0:
+                                logging.warning("已运行{}次".format(current_count))
+
+                            if 0 < PAUSE_COUNT < current_count:
+                                logging.warning("间隔休息十分钟")
+                                restart_game()
+                        else:
+                            fast_count = fast_count + 1
+                            if fast_count > 10:
+                                stop_game()
+                                logging.warning("错误次数过多(过快)")
+                                break
                     tap_screen(res[1], res[2])
             else:  # 未匹配
                 time.sleep(1)
@@ -171,8 +189,11 @@ def check_game_state(justClosePop=False):
             print(e)
             if error_count > 10:
                 stop_game()
-                logging.info("错误次数过多")
+                logging.warning("错误次数过多")
                 break
+
+
+
 
 
 def tapToStart():

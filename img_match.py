@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from constant import PC_PROJECT_ROOT, SCREEN_PATH, PC_RECONGNIZE_TEST, getRecongnizeTarget,getTargetImgs
+from constant import PC_PROJECT_ROOT, SCREEN_PATH, PC_RECONGNIZE_TEST, getRecognizeTarget,getTargetImgs
 
 from logger import logger as logging
 
@@ -44,9 +44,10 @@ def find_img_position(debugEveryOne=False):
 
             if debugEveryOne is True:
                 logging.debug('match Img :{}'.format(template))
+
                 # show the rect of find subImage
                 rect = res['rectangle']
-                crop_file = template.replace(getRecongnizeTarget(),PC_RECONGNIZE_TEST)
+                crop_file = template.replace(getRecognizeTarget(), PC_RECONGNIZE_TEST)
                 if os.path.exists(crop_file):
                     os.remove(crop_file)
                 Image.open('{}{}'.format(PC_PROJECT_ROOT,SCREEN_PATH)).crop((rect[0][0],
@@ -55,4 +56,6 @@ def find_img_position(debugEveryOne=False):
                                                                      rect[3][1],)).save(crop_file)
             else:
                 return template,x, y
+        elif debugEveryOne is True:
+                logging.debug('not match Img :{}'.format(template))
     return None

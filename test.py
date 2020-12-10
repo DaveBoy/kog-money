@@ -11,7 +11,7 @@ from logger import logger as logging
 
 if __name__ == '__main__':
     init()
-    pull_screenshot(SCREEN_METHOD,True)
+    #pull_screenshot(SCREEN_METHOD,True)
     res=find_img_position(True)
     if res is None:
         logging.debug("not match")

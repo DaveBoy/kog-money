@@ -5,7 +5,17 @@ from __future__ import print_function
 import logging
 import os.path
 import time
-from constant import LOG_FILE_SWITCH,LOG_CONSOLE_LEVEL,LOG_FILE_LEVEL
+from constant import LOG_FILE_SWITCH, LOG_CONSOLE_LEVEL, LOG_FILE_LEVEL,LOG_SERVER_LEVEL
+from msg import postServerMsg
+
+
+class MsgServerHandler(logging.Handler):
+    def __init__(self):
+        logging.Handler.__init__(self)
+
+    def emit(self, record):
+        postServerMsg(record)
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.DEBUG)
@@ -22,10 +32,14 @@ handler.setFormatter(formatter)
 
 console = logging.StreamHandler()
 console.setLevel(LOG_CONSOLE_LEVEL)
+
+server = MsgServerHandler()
+server.setLevel(LOG_SERVER_LEVEL)
+
 if LOG_FILE_SWITCH:
     logger.addHandler(handler)
 logger.addHandler(console)
-
+logger.addHandler(server)
 
 if __name__ == '__main__':
     logger.debug('This is a debug message.')

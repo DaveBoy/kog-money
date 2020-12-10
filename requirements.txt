@@ -3,5 +3,5 @@ pure-python-adb
 aircv
 scikit-image
 watchdog
-
+requests
 
