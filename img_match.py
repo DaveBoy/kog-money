@@ -28,8 +28,9 @@ def find_img_position(debugEveryOne=False):
     if debugEveryOne and not os.path.exists(PC_RECONGNIZE_TEST):
         os.makedirs(PC_RECONGNIZE_TEST)
 
+    realRes = None
     for template in getTargetImgs():
-        res = matchImg('{}{}'.format(PC_PROJECT_ROOT,SCREEN_PATH),template,confidencevalue=0.9)
+        res = matchImg('{}{}'.format(PC_PROJECT_ROOT,SCREEN_PATH),template,confidencevalue=0.1)
         # {'confidence': 0.5435812473297119, 'rectangle': ((394, 384), (394, 416), (450, 384), (450, 416)), 'result': (422.0, 400.0)
         # confidence：匹配相似率
         #
@@ -43,6 +44,8 @@ def find_img_position(debugEveryOne=False):
             logging.debug('match position =  ({},{})'.format(x, y))
 
             if debugEveryOne is True:
+                if realRes is None:
+                    realRes = template,x, y
                 logging.debug('match Img :{}'.format(template))
 
                 # show the rect of find subImage
@@ -58,4 +61,4 @@ def find_img_position(debugEveryOne=False):
                 return template,x, y
         elif debugEveryOne is True:
                 logging.debug('not match Img :{}'.format(template))
-    return None
+    return realRes
