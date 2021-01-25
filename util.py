@@ -203,4 +203,4 @@ def tapToStart():
 
     tap_screen_convert(658, 346)  # 挑战
 
-    tap_screen_convert(1006, 610)
+    tap_screen_convert(957, 640)  # 下一步
