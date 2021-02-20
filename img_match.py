@@ -30,7 +30,7 @@ def find_img_position(debugEveryOne=False):
 
     realRes = None
     for template in getTargetImgs():
-        res = matchImg('{}{}'.format(PC_PROJECT_ROOT,SCREEN_PATH),template,confidencevalue=0.9)
+        res = matchImg('{}{}'.format(PC_PROJECT_ROOT,SCREEN_PATH),template,confidencevalue=0.85)
         # {'confidence': 0.5435812473297119, 'rectangle': ((394, 384), (394, 416), (450, 384), (450, 416)), 'result': (422.0, 400.0)
         # confidence：匹配相似率
         #
