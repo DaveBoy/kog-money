@@ -1,6 +1,7 @@
 import glob
 import os.path
 import logging
+import configparser
 
 SCREEN_FILE_NAME = "screen"
 SCREEN_FILE_TYPE = ".png"
@@ -19,7 +20,10 @@ LOG_SERVER_LEVEL = logging.WARNING
 
 PAUSE_COUNT = -1  # 多少次暂停一次  不暂停设为-1，防止检测用的，不知道有没有用
 
-SERVER_SCKEY = ""  # http://sc.ftqq.com/?c=code
+config = configparser.ConfigParser()
+config.read("config.ini")
+SERVER_SCKEY = config.get("Key", "SERVER_SCKEY") # http://sc.ftqq.com/?c=code
+
 SERVER_TIMES = 10
 MAX_TIME = 240  # 一局需要的最长时间 检测卡主的时间  如果一次完成之后这么久还没完成下一次，就算做卡主了，结束游戏，不然一直卡主挂机浪费在线时间
 MIN_TIME = 60  # 一局需要的最短时间 检测卡主

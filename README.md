@@ -29,33 +29,62 @@
     2. python运行环境（我用的3.8.0）
     3. 注意要配置到环境变量中
 ## 运行
-先使用 pip install -r requirements.txt 安装运行所需的module（可能有多余的我没删除，不过影响不大），缺少的module自己对应安装一下
-
-adb命令：
-启动服务：adb start-server  
-查找设备列表：adb devices (应该可以看到一个模拟器/手机设备)
-
-停止服务(一般不需要使用)：adb kill-server
-
-运行money.py
-
-如果遇到问题就debug嘛。
-
-不同分辨率就使用不同maoxian文件夹下面的截图来识别
+    先使用 pip install -r requirements.txt 安装运行所需的module（可能有多余的我没删除，不过影响不大），缺少的module自己对应安装一下
+    
+    adb命令：
+    启动服务：adb start-server  
+    查找设备列表：adb devices (应该可以看到一个模拟器/手机设备)
+    
+    停止服务(一般不需要使用)：adb kill-server
+    
+    运行money.py
+    
+    如果遇到问题就debug嘛。
+    
+    不同分辨率就使用不同maoxian文件夹下面的截图来识别
 
 ## 其他分辨率
 
-1、需要截图的界面运行crop_screenshot.py文件，生成截图（小米miui12出现了奇怪的问题，截图生成到手机的文件名加了时间戳，需要更改crop_screenshot.py中调用方法screen_crop为screen_crop_fix）
+    1、需要截图的界面运行crop_screenshot.py文件，生成截图（小米miui12出现了奇怪的问题，截图生成到手机的文件名加了时间戳，需要更改crop_screenshot.py中调用方法screen_crop为screen_crop_fix）
+    
+    2、然后自己对生成的图片编辑-->裁剪指定区域生成maoxian文件夹下对应图标（具体图标参考maoxian_2248文件夹），不能直接截图，要用裁剪。
+    
+    3、**我自己用的2248的文件夹，其他分辨率的截图如果不对（可以通过test.py进行测试，查看每个图片的匹配度），可能需要大家自己制作（需要的文件参照2248目录）,制作方式参照根目录下的[制作截图.gif](https://github.com/DaveBoy/kog-money/blob/master/%E5%88%B6%E4%BD%9C%E6%88%AA%E5%9B%BE.gif)**
 
-2、然后自己对生成的图片编辑-->裁剪指定区域生成maoxian文件夹下对应图标（具体图标参考maoxian_2248文件夹），不能直接截图，要用裁剪。
+## ~~增加server酱微信通知~~
+    
+    即将弃用，因为server酱开始收费了
+    
+    在config.ini中配置SERVER_SCKEY = xxx
+    
+    [server酱](http://sc.ftqq.com/?c=code)
 
-3、**我自己用的2248的文件夹，其他分辨率的截图如果不对（可以通过test.py进行测试，查看每个图片的匹配度），可能需要大家自己制作（需要的文件参照2248目录）,制作方式参照根目录下的[制作截图.gif](https://github.com/DaveBoy/kog-money/blob/master/%E5%88%B6%E4%BD%9C%E6%88%AA%E5%9B%BE.gif)**
 
-## 增加server酱微信通知
+## 增加企业微信应用消息推送
+[企业微信推送设置](https://note.youdao.com/ynoteshare1/index.html?id=351e08a72378206f9dd64d2281e9b83b&type=note)
 
-constant.SERVER_SCKEY = ""  
+1、创建企业（不需要认证）（https://work.weixin.qq.com/wework_admin/loginpage_wx）
 
-[server酱](http://sc.ftqq.com/?c=code)
+    我的企业--》企业信息--》企业ID
+
+2、创建应用（https://work.weixin.qq.com/wework_admin/frame#apps）
+
+    应用管理-应用-自建-创建应用，自己创建完成后获取secret和AgentID
+
+3、扫码
+    我的企业--》微信插件--》邀请关注
+    
+4、配置参数
+
+    在config.ini中配置
+    
+    corpid = 如：ww840aa3aa97123456 我的企业--》企业信息--》企业ID
+    
+    agentid = 如：1000002 应用管理--》应用--》自建--》应用名称--》AgentId
+    
+    corpsecret = 如：qqRXgScAQ_aCq_QIpmutuf7xY236caGfIi_PDaHD9eD 就在agentid下面一行
+
+
 
 ## 注意点
 test.py:发现匹配出现问题时调试使用，可以生成识别结果裁剪到maoxian_crop文件夹，自己查看是否是正确的区域
@@ -67,6 +96,8 @@ constant.SCREEN_METHOD = 0 #0一般手机都行  1是0截图出问题的时候(�
 有啥问题欢迎提issue
 
 ## 更新日志
+2021年3月5日：Server酱即将收费，集成企业微信应用消息推送，具体方法见readme中'增加企业微信应用消息推送'
+
 2021年2月20日：目前发现vx区和qq区的图对比后的相似度有区别，而原本设置的相似度为0.9，如果偶尔出现未识别问题，可以尝试调低相似度，建议区间0.8-0.9。也可以同一个图截图多个（如b_finish和b_finish_vx）
 
 

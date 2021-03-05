@@ -181,6 +181,8 @@ def check_game_state(justClosePop=False):
                                 stop_game()
                                 logging.warning("错误次数过多(过快)")
                                 break
+                    elif "crop_continue" in name:
+                        time.sleep(3)
                     tap_screen(res[1], res[2])
             else:  # 未匹配
                 time.sleep(1)

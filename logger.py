@@ -6,7 +6,7 @@ import logging
 import os.path
 import time
 from constant import LOG_FILE_SWITCH, LOG_CONSOLE_LEVEL, LOG_FILE_LEVEL,LOG_SERVER_LEVEL
-from msg import postServerMsg
+from msg import postServerMsg,postWxMsg
 
 
 class MsgServerHandler(logging.Handler):
@@ -15,7 +15,8 @@ class MsgServerHandler(logging.Handler):
 
     def emit(self, record):
         msg=self.format(record)
-        postServerMsg(msg)
+        #postServerMsg(msg)
+        postWxMsg(msg)
 
 
 logger = logging.getLogger(__name__)
