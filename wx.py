@@ -15,7 +15,6 @@ agentid = int(config.get("Key", "agentid"))
 corpsecret = config.get("Key", "corpsecret")
 token = config.get("Key", "token")
 
-uploadUrl = "https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=" + token + "&type=image"
 
 
 httpDedbug=False
@@ -47,7 +46,8 @@ def sendWxMsg(msg):
                 sendMsg(jsonData["media_id"], msg)
         elif code == 42001:
             getToken()
-            code = uploadFile()
+            jsonData = uploadFile()
+            code = jsonData["errcode"]
             if code == 0:
                 sendMsg(jsonData["media_id"], msg)
     except:
@@ -92,6 +92,7 @@ def getToken():
 
 
 def uploadFile():
+    uploadUrl = "https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=" + token + "&type=image"
     if not os.path.exists('pic'):
         os.makedirs('pic')
     files = {'file': open(compress_image('screen.png', 'pic/screen.png'), 'rb')}  # 图片文件foo.png需和脚本在同一个目录
