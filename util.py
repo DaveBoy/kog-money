@@ -200,10 +200,11 @@ def check_game_state(justClosePop=False):
 
 
 def tapToStart():
-    tap_screen_convert(1007, 531)  # 万象天工
-
-    tap_screen_convert(90, 170)  # 快捷入口第一个
-
-    tap_screen_convert(658, 346)  # 挑战
-
-    tap_screen_convert(957, 640)  # 下一步
+    print("已用图片识别替代")
+    # tap_screen_convert(1007, 531)  # 万象天工
+    #
+    # tap_screen_convert(90, 170)  # 快捷入口第一个
+    #
+    # tap_screen_convert(658, 346)  # 挑战
+    #
+    # tap_screen_convert(957, 640)  # 下一步

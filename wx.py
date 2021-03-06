@@ -50,7 +50,8 @@ def sendWxMsg(msg):
             code = jsonData["errcode"]
             if code == 0:
                 sendMsg(jsonData["media_id"], msg)
-    except:
+    except Exception as e:
+        print(e)
         print("发送失败")
 
 

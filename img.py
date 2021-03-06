@@ -13,10 +13,12 @@ def compress_image(infile, outfile, mb=2048, quality=3, k=0.5):
     :param quality: 初始压缩比率
     :return: 压缩文件地址，压缩文件大小
     """
-
+    if os.path.exists(outfile):
+        os.remove(outfile)
     o_size = os.path.getsize(infile) // 1024
     print(o_size, mb)
     if o_size <= mb:
+        Image.open(infile).save(outfile, quality=quality)
         return outfile
 
     ImageFile.LOAD_TRUNCATED_IMAGES = True

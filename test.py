@@ -7,8 +7,8 @@ from logger import logger as logging
 if __name__ == '__main__':
     init()
     pull_screenshot(SCREEN_METHOD,True)
-    res = find_img_position(True)
-    if res is None:
-        logging.debug("not match")
-    else:
-        logging.debug("{} found on:({},{})".format(res[0], res[1], res[2]))
+    # res = find_img_position(True)
+    # if res is None:
+    #     logging.debug("not match")
+    # else:
+    #     logging.debug("{} found on:({},{})".format(res[0], res[1], res[2]))
