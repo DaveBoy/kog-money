@@ -138,6 +138,11 @@ def check_game_state(justClosePop=False):
             res = find_img_position()  # 这里容易出错
             error_count = 0
             if justClosePop:  # 启动关闭广告
+                # 存在出现妲己提醒休息  需要再次下线
+                if res is not None and "a_relax" in res[0]:  # 妲己提示休息
+                    logging.warning("妲己提示休息,休息十分钟")
+                    restart_game()
+                    return
                 while res is not None and "b_close_pop" in res[0]:
                     tap_screen(res[1], res[2])  # X掉开始的活动广告
                     time.sleep(2)
@@ -151,7 +156,7 @@ def check_game_state(justClosePop=False):
                 if res is not None and "b_close_pop" in res[0]:
                     tap_screen(res[1], res[2])  # X掉开始的活动广告
 
-                break  # 关完活动页就关闭了 回去继续执行之前的循环
+                return  # 关完活动页就关闭了 回去继续执行之前的循环
             if res is not None:  # 正常匹配
                 name = res[0]
                 if "b_finish" in name:  # 超出上限
