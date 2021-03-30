@@ -4,4 +4,3 @@ aircv
 scikit-image
 watchdog
 requests
-

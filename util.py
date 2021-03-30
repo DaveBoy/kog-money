@@ -1,29 +1,38 @@
 import logging
 import os
 import random
+import shutil
 import time
 from datetime import datetime
 from io import BytesIO
 
-from PIL import Image
+from PIL import Image, ImageFile
 from ppadb.client import Client as AdbClient
 
-from constant import SCREEN_PATH, SCREEN_METHOD, getDeviceSize, setDeviceSize, PAUSE_COUNT, SERVER_TIMES, \
-    MAX_TIME,MIN_TIME
+from constant import SCREEN_PATH, getDeviceSize, setDeviceSize, PAUSE_COUNT, SERVER_TIMES, \
+    MAX_TIME, MIN_TIME, PC_CROP_PARENT_NAME, PC_PROJECT_ROOT, SCREEN_METHOD
 from img_match import find_img_position
-
-client = AdbClient(host="127.0.0.1", port=5037)
-
-device = client.devices()[0]
-
-baseline = {}
 
 # 日志输出
 from logger import logger as logging
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 base_x, base_y = 1280, 720
 
 current_count = 0
+
+
+def initDevice():
+    os.system('taskkill /f /im %s' % 'cmd.exe')
+    os.system('taskkill /f /im %s' % 'adb.exe')
+
+    os.system("adb kill-server")
+    os.system("adb start-server")
+    global client
+    client = AdbClient(host="127.0.0.1", port=5037)
+    global device
+    device = client.devices()[0]
 
 
 def init():
@@ -64,24 +73,20 @@ def stop_game():
 
 def start_game():
     device.shell('monkey -p com.tencent.tmgp.sgame -c android.intent.category.LAUNCHER 1')  # 打开游戏
-    logging.info("启动游戏，等待30s")
-    time.sleep(30)
+    time.sleep(1)
+    pull_screenshot(method=SCREEN_METHOD, save_file=True)
+    res = find_img_position()
+    if res is None:
+        time.sleep(20)
     init()
-    tap_screen_convert(643, 553)  # 选区界面 开始游戏
-
-    logging.info("选区结束，等待30s")
-
-    time.sleep(30)
-
-    logging.info("关闭广告")
-    check_game_state(True)
 
 
-def restart_game():
+def restart_game(needSleep=600):
     stop_game()
 
-    logging.info("休息10分钟")
-    time.sleep(60 * 10)
+    if needSleep > 0:
+        logging.info("休息10分钟")
+        time.sleep(needSleep)
 
     logging.info("重启游戏")
 
@@ -100,7 +105,9 @@ def find_screen_size():
     logging.info('device size x, y = ({}, {})'.format(x, y))
 
 
-def pull_screenshot(resize=False, method=0, save_file=False):
+# 小米手机可能失败  因为adb shell screencap -p /sdcard/screen.png会生成screen_1616773251284.png类似文件名
+def pull_screenshot(method=0, save_file=False):
+    img = None
     if save_file and os.path.exists(SCREEN_PATH):
         os.remove(SCREEN_PATH)
     if method == 0:
@@ -110,18 +117,65 @@ def pull_screenshot(resize=False, method=0, save_file=False):
         if save_file:
             with open(SCREEN_PATH, "wb") as fp:
                 fp.write(result)
+    elif method == 1:
+        pull_screenshot_new()
+    elif method == 2:
+        pull_screenshot_fix()
     else:
-        os.system('adb shell screencap -p /sdcard/{}'.format(SCREEN_PATH))
-        os.system('adb pull /sdcard/{} {}'.format(SCREEN_PATH, SCREEN_PATH))
-        if not save_file:
-            img = Image.open(SCREEN_PATH)
-    if resize and img.size != (base_x, base_y):
-        return img.resize((base_x, base_y))
-    else:
-        return img
+        os.system('adb shell screencap -p /sdcard/{}'.format(SCREEN_PATH))  # adb shell screencap -p /sdcard/screen.png
+        os.system('adb pull /sdcard/{} {}'.format(SCREEN_PATH, SCREEN_PATH))  # adb pull /sdcard/screen.png screen.png
+    if img is None and not save_file:
+        img = Image.open(SCREEN_PATH)
+    return img
 
 
-def check_game_state(justClosePop=False):
+def pull_screenshot_new():
+    os.system('adb exec-out screencap -p > {}'.format(SCREEN_PATH))  # adb exec-out screencap -p > screen.png
+    # https://stackoverflow.com/questions/13984017/how-to-capture-the-screen-as-fast-as-possible-through-adb
+    # https://stackoverflow.com/questions/13578416/read-binary-stdout-data-from-adb-shell
+
+
+def pull_screenshot_fix():
+    if os.path.exists(PC_CROP_PARENT_NAME):
+        shutil.rmtree(PC_CROP_PARENT_NAME)
+
+    os.system('adb shell rm -r /sdcard/{}'.format(PC_CROP_PARENT_NAME))
+    os.system('adb shell mkdir /sdcard/{}'.format(PC_CROP_PARENT_NAME))
+    os.system('adb shell screencap -p /sdcard/{}/{}'.format(PC_CROP_PARENT_NAME, SCREEN_PATH))  # 此处文件名不一定匹配
+    os.system('adb pull /sdcard/{} {}'.format(PC_CROP_PARENT_NAME, PC_PROJECT_ROOT))
+
+    file_name = os.listdir(PC_CROP_PARENT_NAME)
+    shutil.copy('{0}/{1}'.format(PC_CROP_PARENT_NAME, file_name[0]), SCREEN_PATH)
+
+
+def startToHome():
+    noDialogCount = 0
+    while noDialogCount < 3:  # 连续三次检测不到弹窗、选区
+        try:
+            pull_screenshot(method=SCREEN_METHOD, save_file=True)
+            res = find_img_position()
+            if res is None:
+                noDialogCount += 1
+                time.sleep(5)
+            elif res[0].startswith("z_choose_region"):
+                noDialogCount = 0
+                tap_screen(res[1], res[2])
+                time.sleep(5)
+            elif res[0].startswith("b_close_pop"):
+                noDialogCount = 0
+                tap_screen(res[1], res[2])  # X掉开始的活动广告
+                time.sleep(1)
+            else:
+                noDialogCount += 1
+                time.sleep(3)
+        except Exception as e:
+            print(e)
+
+    logging.debug("关闭弹窗结束")
+
+
+def check_game_state(waitTime=None):
+    startToHome()
     speed_time = datetime.now()
     global current_count
     error_count = 0
@@ -130,78 +184,66 @@ def check_game_state(justClosePop=False):
     while True:
         try:
             if (datetime.now() - speed_time).seconds > MAX_TIME:
-                stop_game()
                 logging.warning("异常卡住，结束游戏")
-                break
+                speed_time = datetime.now()
+                restart_game(needSleep=0)
+                continue
             pull_screenshot(method=SCREEN_METHOD, save_file=True)
 
             res = find_img_position()  # 这里容易出错
             error_count = 0
-            if justClosePop:  # 启动关闭广告
-                # 存在出现妲己提醒休息  需要再次下线
-                if res is not None and "a_relax" in res[0]:  # 妲己提示休息
-                    logging.warning("妲己提示休息,休息十分钟")
-                    restart_game()
-                    return
-                while res is not None and "b_close_pop" in res[0]:
-                    tap_screen(res[1], res[2])  # X掉开始的活动广告
-                    time.sleep(2)
-
-                    pull_screenshot(method=SCREEN_METHOD, save_file=True)
-                    res = find_img_position()
-
-                time.sleep(5)  # 有个弹窗的直播  特别慢  所以再试一次
-                pull_screenshot(method=SCREEN_METHOD, save_file=True)
-                res = find_img_position()
-                if res is not None and "b_close_pop" in res[0]:
-                    tap_screen(res[1], res[2])  # X掉开始的活动广告
-
-                return  # 关完活动页就关闭了 回去继续执行之前的循环
             if res is not None:  # 正常匹配
                 name = res[0]
-                if "b_finish" in name:  # 超出上限
+                if name.startswith("b_finish"):  # 超出上限
                     stop_game()
                     logging.warning("超出上限")
+                    if waitTime is not None:
+                        waitTime.value = -1
                     break
-                elif "a_relax" in name:  # 妲己提示休息
+                elif name.startswith("a_relax"):  # 妲己提示休息
                     logging.warning("妲己提示休息,休息十分钟")
+                    if waitTime is not None:
+                        waitTime.value = 1
                     restart_game()
-                else:
-                    if "crop_restart" in name:
-                        seconds = (datetime.now() - speed_time).seconds
-                        speed_time = datetime.now()
-                        if seconds >= MIN_TIME:  # 防止卡在结算界面，重复计算成功次数
-                            fast_count = 0
-                            current_count = current_count + 1
-                            logging.info("已运行{}次,本次时间{}秒".format(current_count, seconds))
-                            if current_count % SERVER_TIMES == 0:
-                                logging.warning("已运行{}次".format(current_count))
+                    if waitTime is not None:
+                        waitTime.value = 0
+                elif name.startswith("crop_restart"):
+                    seconds = (datetime.now() - speed_time).seconds
+                    speed_time = datetime.now()
+                    if seconds >= MIN_TIME:  # 防止卡在结算界面，重复计算成功次数
+                        fast_count = 0
+                        current_count = current_count + 1
+                        logging.info("已运行{}次,本次时间{}秒".format(current_count, seconds))
+                        if current_count % SERVER_TIMES == 0:
+                            logging.warning("已运行{}次".format(current_count))
 
-                            if 0 < PAUSE_COUNT < current_count:
-                                logging.warning("间隔休息十分钟")
-                                restart_game()
-                        else:
-                            fast_count = fast_count + 1
-                            if fast_count > 10:
-                                stop_game()
-                                logging.warning("错误次数过多(过快)")
-                                break
-                    
-                    tap_screen(res[1], res[2])
-                    if "crop_continue" in name:
-                        time.sleep(3)
+                        if 0 < PAUSE_COUNT < current_count:
+                            logging.warning("间隔休息十分钟")
+                            if waitTime is not None:
+                                waitTime.value = 1
+                            restart_game()
+                            if waitTime is not None:
+                                waitTime.value = 0
+                    else:
+                        fast_count = fast_count + 1
+                        if fast_count > 10:
+                            logging.warning("错误次数过多(过快)")
+                            restart_game(needSleep=0)
+                            continue
+
+                tap_screen(res[1], res[2])
+                if name.startswith("crop_continue"):
+                    time.sleep(3)
+                else:
+                    time.sleep(2)
             else:  # 未匹配
-                time.sleep(1)
+                time.sleep(2)
         except Exception as e:
             error_count = error_count + 1
-            print(e)
+            logging.error(e, exc_info=True, stack_info=True)
             if error_count > 10:
-                stop_game()
                 logging.warning("错误次数过多")
-                break
-
-
-
+                restart_game(needSleep=0)
 
 
 def tapToStart():

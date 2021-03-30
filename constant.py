@@ -11,10 +11,16 @@ PC_CROP_PARENT_NAME = "screen_crop"
 PC_CROP_PARENT_PATH = "{}\\".format(PC_CROP_PARENT_NAME)
 PC_RECONGNIZE_TEST = "maoxian_crop"
 
-SCREEN_METHOD = 0  # 0一般手机都行  1是0截图出问题的时候用，比如腾讯手游助手就需要设置为1
+SCREEN_METHOD = 1
+# 0：python自带的方式，实际原理类似3
+# 1：推荐方式
+#
+# 3：普通模式，0出问题的时候(看根目录下生成的screen.png是否正常)用，比如腾讯手游助手就需要设置为3
+#
+# 2：对方法3时生成带时间戳的文件名（如：screen_1616773251284.png）的解决方式，目前就遇到小米会这样
 
 LOG_FILE_SWITCH = True
-LOG_FILE_LEVEL = logging.INFO
+LOG_FILE_LEVEL = logging.DEBUG
 LOG_CONSOLE_LEVEL = logging.DEBUG
 LOG_SERVER_LEVEL = logging.WARNING
 
