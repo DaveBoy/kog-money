@@ -2,7 +2,7 @@ import os
 import time
 from datetime import datetime
 from multiprocessing import Process, Value
-
+import sys
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -40,6 +40,10 @@ class MyHandler(FileSystemEventHandler):
 lastChangeTime = datetime.now()
 
 if __name__ == '__main__':
+    closeTime = -1
+    args = sys.argv[1:]
+    if len(args) > 0:
+        closeTime = args[0]
     print("父进程：{0}".format(os.getpid()))
 
     p = Process(target=startGame, args=(waitTime,))
@@ -76,5 +80,6 @@ if __name__ == '__main__':
     observer.join()
 
     logging.error('Process end.')
-    # windows系统关机
-    os.system("shutdown -s -t 0")
+    if closeTime >= 0:
+        # windows系统关机
+        os.system("shutdown -s -t {0}".format(closeTime))
