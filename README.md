@@ -29,27 +29,23 @@
     2. python运行环境（我用的3.8.0）
     3. 注意要配置到环境变量中
 ## 运行
-    先使用 pip install -r requirements.txt 安装运行所需的module（可能有多余的我没删除，不过影响不大），缺少的module自己对应安装一下
+    先使用 pip install -r requirements.txt 安装运行所需的module
     
-    adb命令：
-    启动服务：adb start-server  
-    查找设备列表：adb devices (应该可以看到一个模拟器/手机设备)
     
-    停止服务(一般不需要使用)：adb kill-server
+    点击运行：王者荣耀刷金币(自动关机).bat/王者荣耀刷金币.bat
     
-    运行money.py
-    
-    如果遇到问题就debug嘛。
+    如果遇到问题就提issue嘛。
     
     不同分辨率就使用不同maoxian文件夹下面的截图来识别
 
 ## 其他分辨率
+    **建议使用2248分辨率的手机，我自己用的，会一直更新此分辨率截图，否则需要按照以下教程制作截图，有问题提issue**
 
     1、需要截图的界面运行crop_screenshot.py文件，生成截图（小米miui12出现了奇怪的问题，截图生成到手机的文件名加了时间戳，需要更改crop_screenshot.py中调用方法screen_crop为screen_crop_fix）
     
     2、然后自己对生成的图片编辑-->裁剪指定区域生成maoxian文件夹下对应图标（具体图标参考maoxian_2248文件夹），不能直接截图，要用裁剪。
     
-    3、**我自己用的2248的文件夹，其他分辨率的截图如果不对（可以通过test.py进行测试，查看每个图片的匹配度），可能需要大家自己制作（需要的文件参照2248目录）,制作方式参照根目录下的[制作截图.gif](https://github.com/DaveBoy/kog-money/blob/master/%E5%88%B6%E4%BD%9C%E6%88%AA%E5%9B%BE.gif)**
+    3、**制作完的截图可以通过test.py进行测试，查看每个图片的匹配度,制作方式参照根目录下的[制作截图.gif](https://github.com/DaveBoy/kog-money/blob/master/%E5%88%B6%E4%BD%9C%E6%88%AA%E5%9B%BE.gif)**
 
 ## ~~增加server酱微信通知~~
     
