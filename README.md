@@ -1,3 +1,6 @@
+# S23移除了挑战模式，本项目不再维护
+
+
 脚本基于[tobyqin/kog-money](https://github.com/tobyqin/kog-money) 改动。
 
 ## 原理
